@@ -6,7 +6,7 @@ name = "mtg-multi"
 description.en = "Fork of mtg with multi-secret support and per-user stats"
 description.fr = "Fork de mtg avec support multi-secret et statistiques par utilisateur"
 
-version = "1.12.0~ynh1"
+version = "1.11.0~ynh4"
 
 maintainers = ["mrpsycho"]
 
@@ -98,13 +98,8 @@ disk = "50M"
 
     [resources.sources.main]
     # x86_64 / amd64
-    amd64.url = "https://github.com/dolonet/mtg-multi/releases/download/v1.12.0/mtg-multi-1.12.0-linux-amd64.tar.gz"
-    amd64.sha256 = "d912aa8f9ea9593ea5b6d33e246435852d576145e9b6ffae0e45ab263ef0baf6"
+    amd64.url = "https://github.com/dolonet/mtg-multi/releases/download/v1.11.0/mtg-multi-1.11.0-linux-amd64.tar.gz"
+    amd64.sha256 = "aa6d9f402b9e395e7782027f9a522ac0f3e1f85c46f444843174b27a210dab35"
     # arm64 / aarch64
-    arm64.url = "https://github.com/dolonet/mtg-multi/releases/download/v1.12.0/mtg-multi-1.12.0-linux-arm64.tar.gz"
-    arm64.sha256 = "c9ec39edb57b3fb770c4f3dd36d89b0e017fffee5da20d02ef2e0e8ce9f4a2b2"
-
-    # Lets the YunoHost autoupdate bot open a PR for every new upstream release
-    autoupdate.strategy = "latest_github_release"
-    autoupdate.asset.amd64 = "^mtg-multi-.*-linux-amd64\\.tar\\.gz$"
-    autoupdate.asset.arm64 = "^mtg-multi-.*-linux-arm64\\.tar\\.gz$"
+    arm64.url = "https://github.com/dolonet/mtg-multi/releases/download/v1.11.0/mtg-multi-1.11.0-linux-arm64.tar.gz"
+    arm64.sha256 = "87e9c5d293cdb0c1dbc988690bab99bc3f16526c7196e812d33354bbfd9a6002"

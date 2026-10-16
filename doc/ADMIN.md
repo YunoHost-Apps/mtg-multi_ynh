@@ -10,9 +10,8 @@ permission (`Users` group) in the webadmin.
 
 ## Self-service key reset
 
-The app's page (in English, French or Russian, following the browser language)
-also carries step-by-step Telegram setup instructions and a **Reset key**
-button, so a user whose key leaked can rotate it without
+The app's page also carries step-by-step Telegram setup instructions and a
+**«Сбросить ключ»** button, so a user whose key leaked can rotate it without
 asking an admin. A user can only ever reset its own key: the request is
 authenticated by the SSO header and additionally signed with a per-user CSRF
 token derived from the current secret.
