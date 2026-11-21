@@ -10,7 +10,7 @@ It shall NOT be edited by hand.
 
 Fork of mtg with multi-secret support and per-user stats
 
-[![Version: 1.11.0~ynh4](https://img.shields.io/badge/Version-1.11.0~ynh4-rgb(18,138,11)?style=for-the-badge)](https://ci-apps.yunohost.org/ci/apps/mtg-multi/)
+[![Version: 1.12.0~ynh1](https://img.shields.io/badge/Version-1.12.0~ynh1-rgb(18,138,11)?style=for-the-badge)](https://ci-apps.yunohost.org/ci/apps/mtg-multi/)
 
 <div align="center">
 <a href="https://apps.yunohost.org/app/mtg-multi"><img height="100px" src="https://github.com/YunoHost/yunohost-artwork/raw/refs/heads/main/badges/neopossum-badges/badge_more_info_on_the_appstore.svg"/></a>
