@@ -19,7 +19,7 @@ mtg_secret_of() {
 # the entries of users that no longer exist.
 mtg_sync_secrets() {
     local tmp user secret
-    tmp="$(mktemp)"
+    tmp="$(mktemp "$install_dir/conf/.secrets.toml.XXXXXX")"
 
     for user in $(ynh_user_list); do
         secret="$(mtg_secret_of "$user" || true)"
@@ -27,29 +27,93 @@ mtg_sync_secrets() {
         echo "\"$user\" = \"$secret\"" >>"$tmp"
     done
 
-    install -o "$app" -g "$app" -m 600 "$tmp" "$secrets_file"
-    rm -f "$tmp"
+    chown "$app:$app" "$tmp"
+    chmod 600 "$tmp"
+    mv -f "$tmp" "$secrets_file"
 }
 
-# Rewrite the [secrets] table of mtg.toml from the secrets file.
+mtg_web_enabled() {
+    [ "${web:-0}" = "1" ] && [ -n "${web_domain:-}" ]
+}
+
+mtg_validate_web() {
+    [ "${web:-0}" = "1" ] || return 0
+    if [ -z "${web_domain:-}" ]; then
+        ynh_die "A domain (web_domain) is required when WEB proxy mode is enabled."
+    fi
+    if [ "$web_domain" = "$domain" ] && [ "$path" = "/" ]; then
+        ynh_die "WEB proxy mode cannot share the root '/' of $domain with the status page. Install the status page on a sub-path (e.g. /mtg-multi) or choose a dedicated WEB domain."
+    fi
+}
+
+# Rewrite the [secrets] table of mtg.toml atomically from the secrets file so a
+# concurrent SIGHUP reload never observes a truncated configuration.
 # [secrets] is the last section of the template, so truncating right after its
 # header and re-appending the entries is enough.
 mtg_apply_secrets() {
-    sed -i '/^\[secrets\]$/q' "$config_file"
-    cat "$secrets_file" >>"$config_file"
-    chown "$app:$app" "$config_file"
-    chmod 600 "$config_file"
+    local tmp
+    tmp="$(mktemp "$install_dir/conf/.mtg.toml.XXXXXX")"
+    sed '/^\[secrets\]$/q' "$config_file" >"$tmp"
+    cat "$secrets_file" >>"$tmp"
+    chown "$app:$app" "$tmp"
+    chmod 600 "$tmp"
+    mv -f "$tmp" "$config_file"
     ynh_store_file_checksum "$config_file"
 }
 
 mtg_add_config() {
+    local prom_enabled web_bind_to web_host
     [ "${prometheus:-0}" = "1" ] && prom_enabled="true" || prom_enabled="false"
+    if mtg_web_enabled; then
+        web_bind_to="127.0.0.1:$port_web"
+        web_host="$web_domain"
+    else
+        web_bind_to=""
+        web_host=""
+    fi
     ynh_config_add --template="mtg.toml" --destination="$config_file"
     mtg_apply_secrets
 }
 
+mtg_add_index_php() {
+    local web_enabled web_domain="${web_domain:-}"
+    mtg_web_enabled && web_enabled="true" || web_enabled="false"
+    ynh_config_add --template="index.php" --destination="$install_dir/www/index.php"
+    chown "$app:$app" "$install_dir/www/index.php"
+}
+
+mtg_setup_web_permission() {
+    if mtg_web_enabled; then
+        ynh_permission_url --permission="web" --url="$web_domain/" --auth_header=false
+    else
+        ynh_permission_url --permission="web" --clear_urls
+    fi
+}
+
+mtg_remove_web_nginx() {
+    local conf_file removed=0
+    for conf_file in /etc/nginx/conf.d/*.d/"$app-web.conf"; do
+        [ -e "$conf_file" ] || continue
+        ynh_delete_file_checksum "$conf_file"
+        ynh_safe_rm "$conf_file"
+        removed=1
+    done
+    if [ "$removed" = "1" ]; then
+        ynh_systemctl --service=nginx --action=reload
+    fi
+}
+
+mtg_setup_web_nginx() {
+    mtg_remove_web_nginx
+    if mtg_web_enabled; then
+        local web_nginx_conf="/etc/nginx/conf.d/$web_domain.d/$app-web.conf"
+        ynh_config_add --template="nginx-web.conf" --destination="$web_nginx_conf"
+        ynh_systemctl --service=nginx --action=reload
+    fi
+}
+
 # index.php runs as $app and may therefore rewrite the secret files, but not
-# restart the service. A systemd path unit watching a trigger file does it.
+# reload the service. A systemd path unit watching a trigger file does it.
 mtg_add_reload_units() {
     touch "$install_dir/conf/.reload"
     chown "$app:$app" "$install_dir/conf/.reload"

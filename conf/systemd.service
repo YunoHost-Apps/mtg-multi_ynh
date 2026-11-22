@@ -8,6 +8,7 @@ User=__APP__
 Group=__APP__
 WorkingDirectory=__INSTALL_DIR__/
 ExecStart=__INSTALL_DIR__/mtg-multi run __INSTALL_DIR__/conf/mtg.toml
+ExecReload=/bin/kill -HUP $MAINPID
 StandardOutput=append:/var/log/__APP__/__APP__.log
 StandardError=inherit
 Restart=always
