@@ -7,5 +7,39 @@ test_format = 1.0
     args.dns = "1.1.1.1"
     args.frontend_domain = "storage.googleapis.com"
     args.prometheus = false
+    args.web = false
+    args.web_domain = "domain.tld"
 
     exclude = ["install.multi"]
+
+    # The personal status page only renders for an SSO-authenticated user and
+    # returns 403 when hit anonymously (e.g. when package_check forces public access).
+    [default.curl_tests]
+    home.path = "/"
+    home.logged_on_sso = true
+    home.expect_title = "MTG-Multi Proxy"
+    home.expect_content = "__USER__"
+
+[web_mode]
+    preinstall = """
+    sudo yunohost domain add webproxy.domain.tld || true
+    """
+
+    args.port = 3128
+    args.dns = "1.1.1.1"
+    args.frontend_domain = "storage.googleapis.com"
+    args.prometheus = false
+    args.web = true
+    args.web_domain = "webproxy.domain.tld"
+
+    exclude = ["install.multi", "install.root", "change_url"]
+
+    [web_mode.curl_tests]
+    home.path = "/"
+    home.logged_on_sso = true
+    home.expect_title = "MTG-Multi Proxy"
+    home.expect_content = "webproxy.domain.tld"
+
+    decoy.base_url = "https://webproxy.domain.tld"
+    decoy.path = "/"
+    decoy.expect_return_code = 404

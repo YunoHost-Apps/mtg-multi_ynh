@@ -40,14 +40,19 @@ EOF
 }
 write_fixtures
 
-sed -e "s|__VERSION__|1.11.0~ynh4|g" \
-    -e "s|__INSTALL_DIR__|$install_dir|g" \
-    -e "s|__PATH__|/mtg-multi|g" \
-    -e "s|__DOMAIN__|proxy.example.tld|g" \
-    -e "s|__PORT__|3128|g" \
-    -e "s|__PORT_API__|9090|g" \
-    -e "s|__FRONTEND_DOMAIN__|$frontend_domain|g" \
-    "$repo/conf/index.php" >"$work/app/www/index.php"
+render_template() { # web_enabled, web_domain
+    sed -e "s|__VERSION__|1.15.0~ynh1|g" \
+        -e "s|__INSTALL_DIR__|$install_dir|g" \
+        -e "s|__PATH__|/mtg-multi|g" \
+        -e "s|__DOMAIN__|proxy.example.tld|g" \
+        -e "s|__PORT__|3128|g" \
+        -e "s|__PORT_API__|19090|g" \
+        -e "s|__FRONTEND_DOMAIN__|$frontend_domain|g" \
+        -e "s|__WEB_ENABLED__|${1:-false}|g" \
+        -e "s|__WEB_DOMAIN__|${2:-}|g" \
+        "$repo/conf/index.php" >"$work/app/www/index.php"
+}
+render_template false ""
 
 cat >"$work/render.php" <<'EOF'
 <?php
@@ -172,6 +177,59 @@ render dave POST "action=reset&token=$(token_for dave '')" >/dev/null
 [ -n "$(secret_of dave)" ] || { echo "FAIL: user without a secret could not create one"; exit 1; }
 [ "$(secret_of alice)" = "$alice_secret" ] || { echo "FAIL: creating a secret clobbered alice"; exit 1; }
 echo "PASS: a user without a secret can create one"
+
+# --- 7. WEB proxy link rendering (disabled vs enabled) -----------------
+write_fixtures
+render_template false ""
+out_noweb="$(render alice)"
+grep -q "webproxy" <<<"$out_noweb" && { echo "FAIL: WEB link shown when WEB mode is disabled"; exit 1; }
+echo "PASS: WEB proxy section is hidden when WEB mode is disabled"
+
+render_template true "webproxy.example.tld"
+out_web="$(render alice)"
+expected_web_sec="dd11111111111111111111111111111111"
+grep -q "$expected_web_sec" <<<"$out_web" || { echo "FAIL: Alice's dd WEB secret missing"; exit 1; }
+grep -q "t.me/webproxy?server=webproxy.example.tld&amp;secret=$expected_web_sec" <<<"$out_web" \
+    || { echo "FAIL: t.me/webproxy link malformed"; exit 1; }
+grep -q "tg://webproxy?server=webproxy.example.tld&amp;secret=$expected_web_sec" <<<"$out_web" \
+    || { echo "FAIL: tg://webproxy link malformed"; exit 1; }
+grep -q "dd22222222222222222222222222222222" <<<"$out_web" \
+    && { echo "FAIL: Bob's WEB secret leaked to Alice"; exit 1; }
+echo "PASS: WEB proxy links derive the caller's dd key and isolate other users"
+
+# --- 8. active_ips rendering & per-user isolation ----------------------
+mkdir -p "$work/stats"
+cat >"$work/stats/stats" <<'EOF'
+{
+  "started_at": "2026-11-22T10:00:00Z",
+  "uptime_seconds": 120,
+  "total_connections": 3,
+  "users": {
+    "alice": {
+      "connections": 2,
+      "bytes_in": 2048,
+      "bytes_out": 4096,
+      "last_seen": "2026-11-22T10:01:55Z",
+      "active_ips": ["198.51.100.7", "2001:db8::42"]
+    },
+    "bob": {
+      "connections": 1,
+      "bytes_in": 1024,
+      "bytes_out": 1024,
+      "last_seen": "2026-11-22T10:01:10Z",
+      "active_ips": ["203.0.113.99"]
+    }
+  }
+}
+EOF
+
+out_stats="$("$runtime" run --rm -v "$work:/srv:z" "$image" sh -c \
+    'php -S 127.0.0.1:19090 -t /srv/stats >/dev/null 2>&1 & until php -r "@fsockopen(\"127.0.0.1\", 19090) or exit(1);" 2>/dev/null; do :; done; php /srv/render.php alice GET "" ""' 2>&1)"
+grep -q "198.51.100.7, 2001:db8::42" <<<"$out_stats" \
+    || { echo "FAIL: Alice's active_ips not shown"; exit 1; }
+grep -q "203.0.113.99" <<<"$out_stats" \
+    && { echo "FAIL: Bob's active_ips leaked to Alice"; exit 1; }
+echo "PASS: active_ips from /stats are displayed only for the logged-in user"
 
 echo
 echo "All web-interface tests passed."

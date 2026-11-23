@@ -9,6 +9,17 @@ source /usr/share/yunohost/helpers
 
 version=$(ynh_read_manifest "version")
 
+if [ -z "${web:-}" ]; then
+    web=0
+    ynh_app_setting_set --key=web --value=0
+fi
+if [ -z "${web_domain+x}" ]; then
+    web_domain=""
+    ynh_app_setting_set --key=web_domain --value=""
+fi
+
+mtg_validate_web
+
 #=================================================
 # STOP SERVICE
 #=================================================
@@ -56,11 +67,12 @@ mtg_add_config
 #=================================================
 ynh_script_progression "Updating web interface..."
 
-ynh_config_add --template="index.php" --destination="$install_dir/www/index.php"
-chown "$app:$app" "$install_dir/www/index.php"
+mtg_add_index_php
 
 ynh_config_add_phpfpm
 ynh_config_add_nginx
+mtg_setup_web_permission
+mtg_setup_web_nginx
 
 #=================================================
 # UPDATE SYSTEMD CONFIG

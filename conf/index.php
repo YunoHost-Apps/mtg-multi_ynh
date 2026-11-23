@@ -10,6 +10,8 @@ const PROXY_HOST      = '__DOMAIN__';
 const PROXY_PORT      = '__PORT__';
 const API_PORT        = '__PORT_API__';
 const FRONTEND_DOMAIN = '__FRONTEND_DOMAIN__';
+const WEB_ENABLED     = '__WEB_ENABLED__' === 'true';
+const WEB_DOMAIN      = '__WEB_DOMAIN__';
 
 const SECRETS_FILE = APP_INSTALL_DIR . '/conf/secrets.toml';
 const CONFIG_FILE  = APP_INSTALL_DIR . '/conf/mtg.toml';
@@ -26,7 +28,7 @@ const STRINGS = [
         'title'             => 'MTG-Multi Proxy — my access',
         'tagline'           => 'MTProto proxy for Telegram',
         'subtitle'          => 'Personal access for user %s', // html
-        'reset_ok'          => 'Your key has been regenerated. The old one no longer works — update it on every device. The proxy is restarting, which takes a couple of seconds.',
+        'reset_ok'          => 'Your key has been regenerated. The old one no longer works — update it on every device. The proxy is reloading your key, which takes a couple of seconds.',
         'reset_error'       => 'The key could not be regenerated. Please contact the server administrator.',
         'card_key'          => 'My access key',
         'no_secret'         => 'No secret has been generated for your account yet.',
@@ -37,6 +39,11 @@ const STRINGS = [
         'btn_connect'       => 'Connect in Telegram',
         'btn_copy_secret'   => 'Copy secret',
         'hint_deeplink'     => 'If the link does not open, try %s or set the proxy up manually (see below).', // html
+        'web_title'         => 'WEB proxy (Telegram Desktop — HTTPS on port 443)',
+        'btn_connect_web'   => 'Connect WEB proxy',
+        'btn_copy_web_sec'  => 'Copy WEB secret',
+        'btn_copy_web_host' => 'Copy WEB server',
+        'hint_web'          => 'Tunnels MTProto inside real HTTPS via %1$s (port 443) for Telegram Desktop when direct MTProto ports are blocked. If the button does not open, try %2$s.', // html
         'confirm_reset'     => 'Regenerate the key? The old one will stop working on every device.',
         'btn_reset'         => 'Reset key',
         'hint_reset'        => 'Reset the key if it leaked to someone else. After a reset you have to reconnect the proxy on each device.',
@@ -58,6 +65,7 @@ const STRINGS = [
         'stat_last_seen'    => 'Last activity',
         'stat_in'           => 'Received',
         'stat_out'          => 'Sent',
+        'stat_active_ips'   => 'Active client IPs',
         'footer_for'        => 'MTG-Multi Proxy for YunoHost',
         'copied'            => 'Copied',
         'err_403'           => '403 — Please sign in through the YunoHost portal.',
@@ -67,7 +75,7 @@ const STRINGS = [
         'title'             => 'MTG-Multi Proxy — mon accès',
         'tagline'           => 'Proxy MTProto pour Telegram',
         'subtitle'          => 'Accès personnel pour l’utilisateur %s',
-        'reset_ok'          => 'Votre clé a été régénérée. L’ancienne ne fonctionne plus — mettez-la à jour sur tous vos appareils. Le proxy redémarre, cela prend quelques secondes.',
+        'reset_ok'          => 'Votre clé a été régénérée. L’ancienne ne fonctionne plus — mettez-la à jour sur tous vos appareils. Le proxy recharge votre clé, cela prend quelques secondes.',
         'reset_error'       => 'La clé n’a pas pu être régénérée. Contactez l’administrateur du serveur.',
         'card_key'          => 'Ma clé d’accès',
         'no_secret'         => 'Aucun secret n’a encore été généré pour votre compte.',
@@ -78,6 +86,11 @@ const STRINGS = [
         'btn_connect'       => 'Se connecter dans Telegram',
         'btn_copy_secret'   => 'Copier le secret',
         'hint_deeplink'     => 'Si le lien ne s’ouvre pas, essayez %s ou configurez le proxy manuellement (voir ci-dessous).',
+        'web_title'         => 'Proxy WEB (Telegram Desktop — HTTPS sur le port 443)',
+        'btn_connect_web'   => 'Connecter le proxy WEB',
+        'btn_copy_web_sec'  => 'Copier le secret WEB',
+        'btn_copy_web_host' => 'Copier le serveur WEB',
+        'hint_web'          => 'Fait passer MTProto dans une vraie session HTTPS via %1$s (port 443) pour Telegram Desktop lorsque les ports MTProto directs sont bloqués. Si le bouton ne s’ouvre pas, essayez %2$s.',
         'confirm_reset'     => 'Régénérer la clé ? L’ancienne cessera de fonctionner sur tous les appareils.',
         'btn_reset'         => 'Réinitialiser la clé',
         'hint_reset'        => 'Réinitialisez la clé si elle a été divulguée. Après la réinitialisation, vous devez reconfigurer le proxy sur chaque appareil.',
@@ -99,6 +112,7 @@ const STRINGS = [
         'stat_last_seen'    => 'Dernière activité',
         'stat_in'           => 'Reçu',
         'stat_out'          => 'Envoyé',
+        'stat_active_ips'   => 'Adresses IP clientes actives',
         'footer_for'        => 'MTG-Multi Proxy pour YunoHost',
         'copied'            => 'Copié',
         'err_403'           => '403 — Connectez-vous via le portail YunoHost.',
@@ -108,7 +122,7 @@ const STRINGS = [
         'title'             => 'MTG-Multi Proxy — мой доступ',
         'tagline'           => 'MTProto proxy для Telegram',
         'subtitle'          => 'Персональный доступ для пользователя %s',
-        'reset_ok'          => 'Ключ пересоздан. Старый ключ больше не работает — обновите настройки на всех устройствах. Прокси перезапускается, это занимает пару секунд.',
+        'reset_ok'          => 'Ключ пересоздан. Старый ключ больше не работает — обновите настройки на всех устройствах. Прокси перечитывает ключ, это занимает пару секунд.',
         'reset_error'       => 'Не удалось пересоздать ключ. Обратитесь к администратору сервера.',
         'card_key'          => 'Мой ключ доступа',
         'no_secret'         => 'Для вашей учётной записи ещё не создан секрет.',
@@ -119,6 +133,11 @@ const STRINGS = [
         'btn_connect'       => 'Подключить в Telegram',
         'btn_copy_secret'   => 'Скопировать секрет',
         'hint_deeplink'     => 'Если ссылка не открывается, попробуйте %s или настройте прокси вручную (см. ниже).',
+        'web_title'         => 'WEB-прокси (Telegram Desktop — HTTPS на порту 443)',
+        'btn_connect_web'   => 'Подключить WEB-прокси',
+        'btn_copy_web_sec'  => 'Скопировать WEB-секрет',
+        'btn_copy_web_host' => 'Скопировать WEB-сервер',
+        'hint_web'          => 'Передаёт MTProto внутри обычной HTTPS-сессии через %1$s (порт 443) для Telegram Desktop, если прямые порты MTProto заблокированы. Если кнопка не открывается, попробуйте %2$s.',
         'confirm_reset'     => 'Пересоздать ключ? Старый перестанет работать на всех устройствах.',
         'btn_reset'         => 'Сбросить ключ',
         'hint_reset'        => 'Сбросьте ключ, если он попал к посторонним. После сброса нужно заново подключить прокси на каждом устройстве.',
@@ -140,6 +159,7 @@ const STRINGS = [
         'stat_last_seen'    => 'Последняя активность',
         'stat_in'           => 'Принято',
         'stat_out'          => 'Отправлено',
+        'stat_active_ips'   => 'Активные IP клиентов',
         'footer_for'        => 'MTG-Multi Proxy для YunoHost',
         'copied'            => 'Скопировано',
         'err_403'           => '403 — Требуется авторизация через портал YunoHost.',
@@ -215,8 +235,34 @@ function generate_secret(): string
     return 'ee' . bin2hex(random_bytes(16)) . bin2hex(FRONTEND_DOMAIN);
 }
 
-// Rewrites both files in place so they keep their 0600 owner-only mode, then
-// pokes the trigger watched by the systemd path unit that restarts the proxy.
+// WEB proxy links carry the same 16-byte user key with the "dd" prefix and no
+// FakeTLS hostname suffix.
+function web_secret_from(?string $secret): ?string
+{
+    if ($secret === null || strlen($secret) <= 34 || strtolower(substr($secret, 0, 2)) !== 'ee') {
+        return null;
+    }
+    $key = strtolower(substr($secret, 2, 32));
+    return ctype_xdigit($key) ? ('dd' . $key) : null;
+}
+
+function write_atomic(string $path, string $content): bool
+{
+    $tmp = $path . '.tmp.' . bin2hex(random_bytes(4));
+    if (@file_put_contents($tmp, $content, LOCK_EX) === false) {
+        @unlink($tmp);
+        return false;
+    }
+    @chmod($tmp, 0600);
+    if (!@rename($tmp, $path)) {
+        @unlink($tmp);
+        return false;
+    }
+    return true;
+}
+
+// Replaces both files atomically with mode 0600 so SIGHUP never observes a
+// half-written config, then pokes the systemd path trigger that reloads mtg.
 function store_secret(string $user, string $secret): bool
 {
     $secrets = read_secrets();
@@ -226,7 +272,7 @@ function store_secret(string $user, string $secret): bool
     foreach ($secrets as $name => $value) {
         $body .= '"' . $name . '" = "' . $value . '"' . "\n";
     }
-    if (file_put_contents(SECRETS_FILE, $body, LOCK_EX) === false) {
+    if (!write_atomic(SECRETS_FILE, $body)) {
         return false;
     }
 
@@ -241,7 +287,7 @@ function store_secret(string $user, string $secret): bool
             break;
         }
     }
-    if (file_put_contents(CONFIG_FILE, implode("\n", $head) . "\n" . $body, LOCK_EX) === false) {
+    if (!write_atomic(CONFIG_FILE, implode("\n", $head) . "\n" . $body)) {
         return false;
     }
 
@@ -304,12 +350,30 @@ $secret = read_secrets()[$user] ?? null;
 $all    = stats();
 $mine   = ($all !== null && isset($all['users'][$user])) ? $all['users'][$user] : null;
 
-$tg_link  = null;
-$tg_deep  = null;
+$active_ips = [];
+if (is_array($mine['active_ips'] ?? null)) {
+    foreach ($mine['active_ips'] as $ip) {
+        if (is_string($ip) && $ip !== '') {
+            $active_ips[] = $ip;
+        }
+    }
+}
+
+$tg_link     = null;
+$tg_deep     = null;
+$web_host    = strtolower(trim(WEB_DOMAIN));
+$web_secret  = (WEB_ENABLED && $web_host !== '') ? web_secret_from($secret) : null;
+$tg_web_link = null;
+$tg_web_deep = null;
 if ($secret !== null) {
     $query   = http_build_query(['server' => PROXY_HOST, 'port' => PROXY_PORT, 'secret' => $secret]);
     $tg_link = 'https://t.me/proxy?' . $query;
     $tg_deep = 'tg://proxy?' . $query;
+}
+if ($web_secret !== null) {
+    $web_query   = http_build_query(['server' => $web_host, 'secret' => $web_secret]);
+    $tg_web_link = 'https://t.me/webproxy?' . $web_query;
+    $tg_web_deep = 'tg://webproxy?' . $web_query;
 }
 ?>
 <!DOCTYPE html>
@@ -387,7 +451,10 @@ if ($secret !== null) {
             border-bottom: 2px solid var(--border);
         }
         .status-badge {
-            display: inline-block;
+            displa.full {
+            grid-column: 1 / -1;
+        }
+        .info-itemy: inline-block;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 0.85rem;
@@ -551,6 +618,26 @@ if ($secret !== null) {
                     </p>
                 </div>
 
+                <?php if ($tg_web_link !== null): ?>
+                <div class="connection-info">
+                    <strong>🌐 <?= h(t('web_title')) ?></strong>
+                    <code id="web-host" style="display:none;"><?= h($web_host) ?></code>
+                    <code id="web-secret"><?= h($web_secret) ?></code>
+                    <div class="btn-row">
+                        <a class="btn" href="<?= h($tg_web_link) ?>"><?= h(t('btn_connect_web')) ?></a>
+                        <button class="btn secondary" type="button" data-copy="web-secret"><?= h(t('btn_copy_web_sec')) ?></button>
+                        <button class="btn secondary" type="button" data-copy="web-host"><?= h(t('btn_copy_web_host')) ?></button>
+                    </div>
+                    <p class="hint">
+                        <?= t(
+                            'hint_web',
+                            '<span class="inline-code">' . h($web_host) . '</span>',
+                            '<a href="' . h($tg_web_deep) . '">tg://webproxy</a>'
+                        ) ?>
+                    </p>
+                </div>
+                <?php endif; ?>
+
                 <form method="post" onsubmit="return confirm(<?= h(json_encode(t('confirm_reset'), JSON_UNESCAPED_UNICODE)) ?>);">
                     <input type="hidden" name="action" value="reset">
                     <input type="hidden" name="token" value="<?= h(csrf_token($user, $secret)) ?>">
@@ -606,6 +693,10 @@ if ($secret !== null) {
                 <span class="status-badge offline">🔴 <?= h(t('offline')) ?></span>
                 <p style="margin-top: 12px;"><?= h(t('stats_unavailable')) ?></p>
             <?php else: ?>
+                    <div class="info-item full">
+                        <div class="label"><?= h(t('stat_active_ips')) ?></div>
+                        <div class="value mono"><?= h($active_ips ? implode(', ', $active_ips) : '—') ?></div>
+                    </div>
                 <span class="status-badge online">🟢 <?= h(t('online')) ?></span>
                 <div class="info-grid" style="margin-top: 16px;">
                     <div class="info-item">

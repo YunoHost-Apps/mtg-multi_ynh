@@ -4,9 +4,10 @@
 
 ## Features
 
-- **Multi-user support**: Multiple secrets per instance with per-user stats tracking
+- **Multi-user support**: Multiple secrets per instance with per-user stats tracking and zero-downtime secret reload (`SIGHUP`)
 - **Domain fronting**: Auto-generates a secret tied to a real HTTPS domain (e.g. `google.com`), making the traffic look like normal HTTPS
-- **Stats API**: Lightweight HTTP endpoint showing live per-user connection counts and traffic
+- **Optional WEB proxy mode**: Tunnels MTProto inside real HTTPS sessions (`tg://webproxy` on port 443) for Telegram Desktop behind Nginx
+- **Stats API**: Lightweight HTTP endpoint showing live per-user connection counts, traffic and active client IPs
 - **Connection throttling**: Automatic per-user connection limits to protect the server from overload
 - **Automatic IP blocklists**: Downloads and applies FireHOL-based blocklists to filter malicious traffic
 - **Anti-replay protection**: Prevents replay attacks via built-in caching
