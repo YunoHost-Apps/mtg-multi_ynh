@@ -9,6 +9,8 @@ source /usr/share/yunohost/helpers
 
 version=$(ynh_read_manifest "version")
 
+mtg_validate_web
+
 #=================================================
 # FETCH AND INSTALL MTG-MULTI BINARY
 #=================================================
@@ -45,11 +47,12 @@ mtg_add_config
 #=================================================
 ynh_script_progression "Setting up web interface..."
 
-ynh_config_add --template="index.php" --destination="$install_dir/www/index.php"
-chown "$app:$app" "$install_dir/www/index.php"
+mtg_add_index_php
 
 ynh_config_add_phpfpm
 ynh_config_add_nginx
+mtg_setup_web_permission
+mtg_setup_web_nginx
 
 #=================================================
 # SYSTEMD + SERVICE REGISTRATION

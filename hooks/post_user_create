@@ -28,21 +28,34 @@ user="${1:-${YNH_USER_USERNAME:-}}"
 [[ "$user" =~ ^[a-z0-9_.-]+$ ]] || exit 0
 [ -f "$config_file" ] || exit 0
 
-touch "$secrets_file"
-if grep -qF "\"$user\" = \"" "$secrets_file"; then
+if [ -f "$secrets_file" ] && grep -qF "\"$user\" = \"" "$secrets_file"; then
     exit 0
 fi
 
 secret="$("$install_dir/mtg-multi" generate-secret --hex "$frontend_domain" | tr -d '[:space:]')"
 [ -n "$secret" ] || exit 1
-echo "\"$user\" = \"$secret\"" >>"$secrets_file"
+
+tmp_secrets=""
+tmp_config=""
+trap 'rm -f "$tmp_secrets" "$tmp_config"' EXIT
+
+tmp_secrets="$(mktemp "$install_dir/conf/.secrets.toml.XXXXXX")"
+if [ -f "$secrets_file" ]; then
+    cat "$secrets_file" >"$tmp_secrets"
+fi
+echo "\"$user\" = \"$secret\"" >>"$tmp_secrets"
+chown "$app:$app" "$tmp_secrets"
+chmod 600 "$tmp_secrets"
+mv -f "$tmp_secrets" "$secrets_file"
 
 # [secrets] is the last section of mtg.toml, so truncating right after its header
-# and re-appending every entry is enough to rebuild the table.
-sed -i '/^\[secrets\]$/q' "$config_file"
-cat "$secrets_file" >>"$config_file"
+# and re-appending every entry into a sibling temp file replaces it atomically
+# before signalling SIGHUP.
+tmp_config="$(mktemp "$install_dir/conf/.mtg.toml.XXXXXX")"
+sed '/^\[secrets\]$/q' "$config_file" >"$tmp_config"
+cat "$secrets_file" >>"$tmp_config"
+chown "$app:$app" "$tmp_config"
+chmod 600 "$tmp_config"
+mv -f "$tmp_config" "$config_file"
 
-chown "$app:$app" "$secrets_file" "$config_file"
-chmod 600 "$secrets_file" "$config_file"
-
-systemctl restart "$app"
+systemctl reload-or-restart "$app"

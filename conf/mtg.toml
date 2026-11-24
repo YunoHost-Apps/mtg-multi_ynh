@@ -17,6 +17,14 @@ bind-to = "127.0.0.1:__PORT_PROMETHEUS__"
 http-path = "/"
 metric-prefix = "mtg"
 
+[web]
+# Empty bind-to disables WEB proxy mode. When enabled, mtg-multi listens on
+# loopback and nginx terminates TLS for host on port 443.
+bind-to = "__WEB_BIND_TO__"
+host = "__WEB_HOST__"
+secret-mode = "dd"
+decoy-dir = ""
+
 # One named secret per YunoHost user, maintained by the package.
 # [secrets] MUST stay the last section: in TOML every key written after a
 # section header belongs to that table.

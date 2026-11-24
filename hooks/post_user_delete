@@ -24,13 +24,22 @@ user="${1:-${YNH_USER_USERNAME:-}}"
 if ! grep -qF "\"$user\" = \"" "$secrets_file"; then
     exit 0
 fi
-grep -vF "\"$user\" = \"" "$secrets_file" >"$secrets_file.new" || true
-mv "$secrets_file.new" "$secrets_file"
 
-sed -i '/^\[secrets\]$/q' "$config_file"
-cat "$secrets_file" >>"$config_file"
+tmp_secrets=""
+tmp_config=""
+trap 'rm -f "$tmp_secrets" "$tmp_config"' EXIT
 
-chown "$app:$app" "$secrets_file" "$config_file"
-chmod 600 "$secrets_file" "$config_file"
+tmp_secrets="$(mktemp "$install_dir/conf/.secrets.toml.XXXXXX")"
+grep -vF "\"$user\" = \"" "$secrets_file" >"$tmp_secrets" || true
+chown "$app:$app" "$tmp_secrets"
+chmod 600 "$tmp_secrets"
+mv -f "$tmp_secrets" "$secrets_file"
 
-systemctl restart "$app"
+tmp_config="$(mktemp "$install_dir/conf/.mtg.toml.XXXXXX")"
+sed '/^\[secrets\]$/q' "$config_file" >"$tmp_config"
+cat "$secrets_file" >>"$tmp_config"
+chown "$app:$app" "$tmp_config"
+chmod 600 "$tmp_config"
+mv -f "$tmp_config" "$config_file"
+
+systemctl reload-or-restart "$app"
