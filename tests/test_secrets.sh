@@ -159,5 +159,14 @@ if (mtg_validate_web) 2>/dev/null; then
 fi
 echo "PASS: mtg_validate_web rejects root-path collision on the same domain"
 
+# --- 8. install / upgrade / restore WEB lifecycle symmetry -------------
+for script in install upgrade restore; do
+    for helper in mtg_setup_web_permission mtg_setup_web_nginx; do
+        grep -qx "$helper" "$repo/scripts/$script" \
+            || { echo "FAIL: scripts/$script missing $helper"; exit 1; }
+    done
+done
+echo "PASS: install, upgrade and restore configure WEB permission and nginx symmetrically"
+
 echo
 echo "All packaging-logic tests passed."

@@ -21,6 +21,11 @@ test_format = 1.0
     home.expect_content = "__USER__"
 
 [web_mode]
+    # package_check's backup_restore, same-version upgrade and change_url reuse
+    # snap_rootinstall / snap_subdirinstall from [default] (unscoped by suite),
+    # so only TEST_INSTALL runs against this suite's preinstall and args.
+    only = ["install.subdir"]
+
     preinstall = """
     sudo yunohost domain add webproxy.domain.tld || true
     """
@@ -31,8 +36,6 @@ test_format = 1.0
     args.prometheus = false
     args.web = true
     args.web_domain = "webproxy.domain.tld"
-
-    exclude = ["install.multi", "install.root", "change_url"]
 
     [web_mode.curl_tests]
     home.path = "/"
