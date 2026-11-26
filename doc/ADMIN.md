@@ -20,8 +20,8 @@ token derived from the current secret.
 `index.php` runs as the `mtg-multi` system user and therefore may rewrite the
 secret files atomically, but not signal the service directly. Instead it touches
 `/var/www/mtg-multi/conf/.reload`, which the `mtg-multi-reload.path` systemd unit
-watches; that unit triggers the oneshot `mtg-multi-reload.service`, which reloads
-the proxy via `SIGHUP` (`systemctl reload-or-restart mtg-multi`). Unchanged users
+watches; that unit triggers the unprivileged oneshot `mtg-multi-reload.service`
+(`User=mtg-multi`), which reloads the proxy via `SIGHUP`. Unchanged users
 keep their live sessions while sessions using the old or revoked secret are
 closed immediately. No sudo rule and no `exec()` from PHP is involved.
 

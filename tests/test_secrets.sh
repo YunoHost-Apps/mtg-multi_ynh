@@ -168,5 +168,30 @@ for script in install upgrade restore; do
 done
 echo "PASS: install, upgrade and restore configure WEB permission and nginx symmetrically"
 
+# --- 9. manifest port pattern & hardened reload.service ----------------
+python3 - "$repo/manifest.toml" <<'PY'
+import re, sys, tomllib
+m = tomllib.load(open(sys.argv[1], "rb"))
+p = m["install"]["port"]
+assert "min" not in p and "max" not in p, p
+rx = re.compile(p["pattern"]["regexp"])
+for ok_port in ("1024", "3128", "8443", "65535"):
+    assert rx.match(ok_port), ok_port
+for bad_port in ("0", "80", "1023", "65536", "70000", "abc"):
+    assert not rx.match(bad_port), bad_port
+PY
+echo "PASS: manifest [install.port] enforces 1024..65535 via schema-valid pattern"
+
+ynh_config_add --template="reload.service" --destination="$work/mtg-multi-reload.service"
+grep -qx "User=mtg-multi" "$work/mtg-multi-reload.service" \
+    || { echo "FAIL: reload.service missing User=mtg-multi"; exit 1; }
+grep -qx "Group=mtg-multi" "$work/mtg-multi-reload.service" \
+    || { echo "FAIL: reload.service missing Group=mtg-multi"; exit 1; }
+for directive in PrivateTmp ProtectSystem SystemCallFilter CapabilityBoundingSet; do
+    grep -q "^${directive}=" "$work/mtg-multi-reload.service" \
+        || { echo "FAIL: reload.service missing ${directive}="; exit 1; }
+done
+echo "PASS: reload.service runs as mtg-multi with systemd security hardening"
+
 echo
 echo "All packaging-logic tests passed."

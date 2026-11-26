@@ -6,7 +6,7 @@ name = "mtg-multi"
 description.en = "Fork of mtg with multi-secret support and per-user stats"
 description.fr = "Fork de mtg avec support multi-secret et statistiques par utilisateur"
 
-version = "1.15.0~ynh2"
+version = "1.15.0~ynh3"
 
 maintainers = ["mrpsycho"]
 
@@ -43,15 +43,15 @@ disk = "50M"
     default = "all_users"
 
     [install.port]
-    type = "number"
+    type = "string"
     ask.en = "Choose a port for the proxy to bind to"
     ask.fr = "Choisissez un port auquel le proxy doit se connecter"
-    default = 3128
-    # Explicit bounds are mandatory: the webadmin turns an absent max into a
-    # `null` one and then rejects every value. 1024 is the floor because the
-    # service runs unprivileged.
-    min = 1024
-    max = 65535
+    default = "3128"
+    # Validated via pattern instead of number min/max: manifest.v2.schema.json
+    # forbids min/max, while type = "number" without max triggers a webadmin bug.
+    # 1024 is the floor because the service runs unprivileged.
+    pattern.regexp = '^(102[4-9]|10[3-9][0-9]|1[1-9][0-9]{2}|[2-9][0-9]{3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$'
+    pattern.error = "Choose a port between 1024 and 65535"
 
     [install.dns]
     type = "string"
